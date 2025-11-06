@@ -1,3 +1,3 @@
 [submodule "/home/rafael/Manipulation/manipulation_planner"]
-	path = /home/rafael/Manipulation/manipulation_planner
+	path = manipulation_planner
 	url = https://github.com/Biorobotica-UNAM/manipulation_planner.git
