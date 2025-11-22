@@ -4,8 +4,6 @@
     
     <include file="$(find-pkg-share manipulation_planner)/launch/ros2_control.launch.xml"/>
 
-    <include file="$(find-pkg-share arms)/launch/arm.launch.xml"/>
-
     <!-- Arm Planner Node -->
     <node pkg="manipulation_planner" 
           exec="arm_movement_planner_node" 
