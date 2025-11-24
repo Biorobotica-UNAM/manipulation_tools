@@ -1,20 +1,14 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="use_sim_time" 
-         default="false"
-         description="Use simulation time"/>
+  <group>
+    <push_ros_namespace namespace='manipulation'/>
 
-	<include file="$(find-pkg-share manipulation_planner)/launch/move_group.launch.py"/>
-    
-  <include file="$(find-pkg-share manipulation_planner)/launch/ros2_control.launch.xml"/>
+    <arg name="use_sim_time" 
+           default="false"
+           description="Use simulation time"/>
 
-  <!-- Arm Planner Node -->
-  <node pkg="manipulation_planner" 
-        exec="arm_movement_planner_node" 
-        name="arm_movement_planner_node" 
-        output="screen">
-
-      <!-- Use simulation time parameter -->
-      <param name="use_sim_time" value="$(var use_sim_time)"/>
-  </node>
+  	<include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml">
+      <arg name="use_sim_time" value="$(var use_sim_time)"/>
+    </include>
+  </group>
 </launch>
