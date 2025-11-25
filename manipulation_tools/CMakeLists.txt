@@ -35,6 +35,6 @@ install(TARGETS manipulation_tools
 )
 
 ament_export_include_directories(include)
-ament_export_libraries(hardware_tools)
+ament_export_libraries(manipulation_tools)
 
 ament_package()
