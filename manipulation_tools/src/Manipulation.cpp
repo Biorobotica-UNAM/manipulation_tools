@@ -2,7 +2,15 @@
 
 Manipulation::Manipulation(rclcpp::Node::SharedPtr node)
 	: node(node) {
-	arm_movement =  node->create_client<manipulation_planner::srv::ArmMovementPlan>("/manipulation/manipulation_planner/plan_arm_movement", rclcpp::QoS(10));
+	arm_movement =  node->create_client<manipulation_planner::srv::ArmMovementPlan>("/plan_arm_movement", rclcpp::QoS(10));
+
+	// Wait up to 10 seconds for service
+    if (!client_->wait_for_service(std::chrono::seconds(10))) {
+        RCLCPP_ERROR(node->get_logger(), "Plan Arm Movement not available");
+        return;
+    }
+
+    RCLCPP_INFO(node->get_logger(), "Plan Arm Movement service is available!");
 }
 
 auto Manipulation::HandleMoveArmResponse(rclcpp::Client<manipulation_planner::srv::ArmMovementPlan>::SharedFuture future) {
