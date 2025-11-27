@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <launch>
-  <group>
-    <push_ros_namespace namespace='manipulation'/>
-
-    <arg name="use_sim_time" 
+  <arg name="use_sim_time" 
            default="false"
            description="Use simulation time"/>
 
+  <include file="$(find-pkg-share manipulation_planner)/launch/move_group.launch.py"/>
+  <include file="$(find-pkg-share manipulation_planner)/launch/ros2_control.launch.xml"/>
+
+  <group>
+    <push_ros_namespace namespace='manipulation'/>
   	<include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml">
       <arg name="use_sim_time" value="$(var use_sim_time)"/>
     </include>
