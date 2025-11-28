@@ -26,12 +26,16 @@ ament_target_dependencies(manipulation_tools
   manipulation_planner
 )
 
-install(DIRECTORY launch include
-  DESTINATION share/${PROJECT_NAME}
+install(DIRECTORY include/
+  DESTINATION include
 )
 
 install(TARGETS manipulation_tools
   DESTINATION lib
+)
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_export_include_directories(include)
