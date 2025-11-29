@@ -5,6 +5,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/qos.hpp"
 #include "manipulation_planner/srv/arm_movement_plan.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 
 class Manipulation
 {
@@ -17,14 +18,14 @@ public:
 	// service.
 	void MoveArmTo(std::string pose_name);
 
-	void MoveArmTo(double x, double y, double z, 
-		double roll, double pitch, double yaw);
+	// void MoveArmTo(double x, double y, double z, 
+	//	double roll, double pitch, double yaw);
 
 private:
-	auto HandleMoveArmResponse(rclcpp::Client<manipulation_planner::srv::ArmMovementPlan>::SharedFuture future);
+	// auto HandleMoveArmResponse(rclcpp::Client<manipulation_planner::srv::ArmMovementPlan>::SharedFuture future);
 
 	// Service clients
-	rclcpp::Client<manipulation_planner::srv::ArmMovementPlan>::SharedPtr arm_movement;
+	rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr arm_movement;
 
 	// Node
 	rclcpp::Node::SharedPtr node;
