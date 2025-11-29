@@ -13,11 +13,11 @@ Manipulation::Manipulation(rclcpp::Node::SharedPtr node)
 void Manipulation::MoveArmTo(std::string pose_name) {
 	auto msg = std_msgs::msg::Float64MultiArray();
 
-	if(pose_name = "neutral") {
+	if(pose_name == "neutral") {
 		msg.data = {0.0, 0.0, 0.0, 0.0};
-	} else if(pose_name = "drop") {
+	} else if(pose_name == "drop") {
 		msg.data = {0.384, -0.2094, 0.2443, 0.0};
-	} else if(pose_name = "take") {
+	} else if(pose_name == "take") {
 		msg.data = {0.4712, 0.0, 0.7854, 0.0};
 	} else {
 		RCLCPP_INFO(node->get_logger(), "POSE NOT DEFINED");
