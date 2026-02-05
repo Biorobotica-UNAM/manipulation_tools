@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="use_sim_time" 
-         default="false"
-         description="Use simulation time"/>
 
-	<include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml">
-    <arg name="use_sim_time" value="$(var use_sim_time)"/>
-  </include>
+  <group>
+    <push_ros_namespace namespace="manipulation"/>
+
+    <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml"/>
+  </group>
+
 </launch>
+
