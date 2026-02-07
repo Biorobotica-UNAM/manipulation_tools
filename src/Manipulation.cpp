@@ -7,7 +7,7 @@ Manipulation::Manipulation(const rclcpp::Node::SharedPtr& node)
 {
   ik_client_ = node_->create_client<
     manipulation_planner_interfaces::srv::SolveRightArmIK>(
-      "/manipulation_planner/solve_right_arm_ik");
+      "/manipulation/manipulation_planner/solve_right_arm_ik");
 }
 
 bool Manipulation::SolveRightArmIK(
@@ -18,7 +18,7 @@ bool Manipulation::SolveRightArmIK(
   if (!waitForService(ik_client_, 1000ms))
   {
     RCLCPP_ERROR(node_->get_logger(),
-      "IK service unavailable (/manipulation_planner/solve_right_arm_ik)");
+      "IK service unavailable (/manipulation/manipulation_planner/solve_right_arm_ik)");
     return false;
   }
 
