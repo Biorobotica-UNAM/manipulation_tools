@@ -25,10 +25,10 @@ bool Manipulation::waitForService(
 
 bool Manipulation::SolveRightArmIK(const geometry_msgs::msg::PoseStamped& target_pose, std::vector<double>& joint_positions, std::string& message)
 {
-	if (!waitForService(talker_client_, 500ms))
+	if (!waitForService(ik_client_, 500ms))
     {
         RCLCPP_ERROR(node_->get_logger(),
-                     "Talk service unavailable (/talk)");
+                     "Inverse kinematic service unavailable (/solve_right_arm_ik)");
         return false;
     }
 	auto request = std::make_shared<manipulation_planner_interfaces::srv::SolveRightArmIK::Request>();
