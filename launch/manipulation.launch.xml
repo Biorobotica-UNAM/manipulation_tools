@@ -2,10 +2,15 @@
 <launch>
 
   <group>
-    <push_ros_namespace namespace="manipulation"/>
+    <push-ros-namespace namespace="hardware"/>
+
+    <include file="$(find-pkg-share moveit)/launch/move_group.launch.py"/>
+  </group>
+
+  <group>
+    <push-ros-namespace namespace="manipulation"/>
 
     <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml"/>
   </group>
 
 </launch>
-

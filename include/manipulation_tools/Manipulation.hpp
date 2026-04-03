@@ -2,32 +2,29 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <mutex>
 #include <condition_variable>
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "manipulation_planner_interfaces/srv/solve_right_arm_ik.hpp"
+#include "manipulation_planner_interfaces/srv/plan_trajectory.hpp"
 
 class Manipulation
 {
 public:
-  explicit Manipulation(const rclcpp::Node::SharedPtr& node);
+    explicit Manipulation(const rclcpp::Node::SharedPtr& node);
 
-  bool SolveRightArmIK(
-    const geometry_msgs::msg::PoseStamped& target_pose,
-    std::vector<double>& joint_positions,
-    std::string& message);
+    bool PlanTrajectory(
+        const geometry_msgs::msg::PoseStamped& target_pose,
+        const std::string& planning_group,
+        std::vector<std::string>& joint_names,
+        std::vector<double>& waypoints,
+        std::vector<double>& timestamps,
+        std::string& message);
 
 private:
-  bool waitForService(
-    const rclcpp::ClientBase::SharedPtr& client,
-    const std::chrono::milliseconds& timeout) const;
-
-  rclcpp::Node::SharedPtr node_;
-
-  rclcpp::Client<
-    manipulation_planner_interfaces::srv::SolveRightArmIK>::SharedPtr
-    ik_client_;
+    rclcpp::Node::SharedPtr node_;
+    rclcpp::Client<manipulation_planner_interfaces::srv::PlanTrajectory>::SharedPtr
+        plan_trajectory_client_;
 };
-
