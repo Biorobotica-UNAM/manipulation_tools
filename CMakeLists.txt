@@ -7,6 +7,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(manipulation_planner_interfaces REQUIRED)
+find_package(manipulation_controller_interfaces REQUIRED)
 
 include_directories(
   include
@@ -20,6 +21,7 @@ ament_target_dependencies(manipulation_tools
   rclcpp
   geometry_msgs
   manipulation_planner_interfaces
+  manipulation_controller_interfaces
 )
 
 install(DIRECTORY include/

@@ -8,6 +8,8 @@
 
     <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml"/>
 
+    <include file="$(find-pkg-share manipulation_controller)/launch/manipulation_controller.launch.xml"/>
+
   </group>
 
 </launch>
