@@ -4,7 +4,7 @@
   <group>
     <push-ros-namespace namespace="manipulation"/>
 
-	<include file="$(find-pkg-share moveit)/launch/move_group.launch.py"/>
+	<include file="$(find-pkg-share move_it)/launch/move_group.launch.py"/>
 
     <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml"/>
 
