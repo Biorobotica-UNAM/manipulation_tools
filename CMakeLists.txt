@@ -37,6 +37,13 @@ install(TARGETS manipulation_tools
   DESTINATION lib
 )
 
+ament_export_dependencies(
+  rclcpp
+  geometry_msgs
+  manipulation_planner_interfaces
+  manipulation_controller_interfaces
+)
+
 ament_export_include_directories(include)
 ament_export_libraries(manipulation_tools)
 
