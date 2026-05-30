@@ -39,7 +39,7 @@ bool Manipulation::PlanTrajectory(
 
   request->target_pose = target_pose;
   request->planning_group = planning_group;
-  request->planning_time = 5.0;
+  request->planning_time = 10.0;
 
   bool success = false;
 
