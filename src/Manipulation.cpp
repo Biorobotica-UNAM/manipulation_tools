@@ -29,6 +29,7 @@ Manipulation::Manipulation(const rclcpp::Node::SharedPtr &node)
 bool Manipulation::PlanTrajectory(
     const geometry_msgs::msg::PoseStamped &target_pose,
     const std::string &planning_group,
+	const std::string &tip_link,
     std::vector<std::string> &joint_names,
     std::vector<double> &waypoints,
     std::string &message,

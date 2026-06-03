@@ -44,6 +44,7 @@ public:
    *
    * @param target_pose     Desired end-effector pose.
    * @param planning_group  MoveIt planning group.
+   * @param tip_link        MoveIt kinematic chain tip.
    * @param joint_names     Output joint names.
    * @param waypoints       Output waypoint vector.
    * @param message         Planner status message.
@@ -54,6 +55,7 @@ public:
   bool PlanTrajectory(
       const geometry_msgs::msg::PoseStamped &target_pose,
       const std::string &planning_group,
+      const std::string &tip_link,
       std::vector<std::string> &joint_names,
       std::vector<double> &waypoints,
       std::string &message,
