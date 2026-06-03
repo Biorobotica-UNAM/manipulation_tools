@@ -1,6 +1,5 @@
 #include "manipulation_tools/Manipulation.hpp"
 
-
 Manipulation::Manipulation(const rclcpp::Node::SharedPtr &node)
     : node_(node)
 {
@@ -25,7 +24,6 @@ Manipulation::Manipulation(const rclcpp::Node::SharedPtr &node)
           cb_group_clients_);
 }
 
-
 bool Manipulation::PlanTrajectory(
     const geometry_msgs::msg::PoseStamped &target_pose,
     const std::string &planning_group,
@@ -40,6 +38,7 @@ bool Manipulation::PlanTrajectory(
 
   request->target_pose = target_pose;
   request->planning_group = planning_group;
+  request->tip_link = tip_link; 
   request->planning_time = 10.0;
 
   bool success = false;
@@ -67,7 +66,6 @@ bool Manipulation::PlanTrajectory(
 
   return completed && success;
 }
-
 
 bool Manipulation::FollowTrajectory(
     const std::string &planning_group,
