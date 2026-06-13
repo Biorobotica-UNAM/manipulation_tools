@@ -31,6 +31,10 @@ bool Manipulation::PlanTrajectory(
     std::vector<std::string> &joint_names,
     std::vector<double> &waypoints,
     std::string &message,
+    bool enable_target_exclusion,
+    const geometry_msgs::msg::PoseStamped &target_exclusion_center,
+    double target_exclusion_radius_xy,
+    double target_exclusion_height_z,
     std::chrono::seconds timeout)
 {
   auto request = std::make_shared<
@@ -40,6 +44,10 @@ bool Manipulation::PlanTrajectory(
   request->planning_group = planning_group;
   request->tip_link = tip_link; 
   request->planning_time = 15.0;
+  request->enable_target_exclusion = enable_target_exclusion;
+  request->target_exclusion_center = target_exclusion_center;
+  request->target_exclusion_radius_xy = target_exclusion_radius_xy;
+  request->target_exclusion_height_z = target_exclusion_height_z;
 
   bool success = false;
 

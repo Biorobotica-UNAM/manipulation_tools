@@ -61,6 +61,15 @@ public:
     declare_parameter<bool>("publish_debug_markers", true);
     declare_parameter<std::string>("debug_marker_topic", "cloud_filter/debug_markers");
     declare_parameter<bool>("debug", false);
+    // Hueco temporal para el objeto que se va a tomar. Lo configura
+    // manipulation_planner antes de planear el acercamiento, para que MoveIt no
+    // trate al propio objetivo como obstaculo.
+    declare_parameter<bool>("target_exclusion_enabled", false);
+    declare_parameter<double>("target_exclusion_x", 0.0);
+    declare_parameter<double>("target_exclusion_y", 0.0);
+    declare_parameter<double>("target_exclusion_z", 0.0);
+    declare_parameter<double>("target_exclusion_radius_xy", 0.14);
+    declare_parameter<double>("target_exclusion_height_z", 0.24);
 
     load_parameters();
 
@@ -198,6 +207,12 @@ private:
   bool enabled_{false};
   bool publish_debug_markers_;
   bool debug_;
+  bool target_exclusion_enabled_;
+  double target_exclusion_x_;
+  double target_exclusion_y_;
+  double target_exclusion_z_;
+  double target_exclusion_radius_xy_;
+  double target_exclusion_height_z_;
 
   void load_parameters()
   {
@@ -222,6 +237,12 @@ private:
     get_parameter("publish_debug_markers", publish_debug_markers_);
     get_parameter("debug_marker_topic", debug_marker_topic_);
     get_parameter("debug", debug_);
+    get_parameter("target_exclusion_enabled", target_exclusion_enabled_);
+    get_parameter("target_exclusion_x", target_exclusion_x_);
+    get_parameter("target_exclusion_y", target_exclusion_y_);
+    get_parameter("target_exclusion_z", target_exclusion_z_);
+    get_parameter("target_exclusion_radius_xy", target_exclusion_radius_xy_);
+    get_parameter("target_exclusion_height_z", target_exclusion_height_z_);
     sanitize_parameters();
   }
 
@@ -237,6 +258,8 @@ private:
     processing_rate_hz_ = std::max(1.0, processing_rate_hz_);
     tf_fallback_warn_threshold_sec_ = std::max(0.0, tf_fallback_warn_threshold_sec_);
     status_period_sec_ = std::max(0.5, status_period_sec_);
+    target_exclusion_radius_xy_ = std::max(0.0, target_exclusion_radius_xy_);
+    target_exclusion_height_z_ = std::max(0.0, target_exclusion_height_z_);
   }
 
   rcl_interfaces::msg::SetParametersResult on_parameter_change(
@@ -270,6 +293,18 @@ private:
         publish_debug_markers_ = param.as_bool();
       } else if (name == "debug") {
         debug_ = param.as_bool();
+      } else if (name == "target_exclusion_enabled") {
+        target_exclusion_enabled_ = param.as_bool();
+      } else if (name == "target_exclusion_x") {
+        target_exclusion_x_ = param.as_double();
+      } else if (name == "target_exclusion_y") {
+        target_exclusion_y_ = param.as_double();
+      } else if (name == "target_exclusion_z") {
+        target_exclusion_z_ = param.as_double();
+      } else if (name == "target_exclusion_radius_xy") {
+        target_exclusion_radius_xy_ = param.as_double();
+      } else if (name == "target_exclusion_height_z") {
+        target_exclusion_height_z_ = param.as_double();
       } else if (name == "active_on_start") {
         set_enabled(param.as_bool(), true);
       } else if (
@@ -457,6 +492,22 @@ private:
            point.z() >= roi_z_min_ && point.z() <= roi_z_max_;
   }
 
+  bool point_in_target_exclusion(const Eigen::Vector3d & point) const
+  {
+    // Cilindro vertical en base_link: radio en XY y altura en Z. Es mas estable
+    // que depender del bbox 2D cuando ya tenemos la pose 3D del objeto.
+    if (!target_exclusion_enabled_) {
+      return false;
+    }
+
+    const double dx = point.x() - target_exclusion_x_;
+    const double dy = point.y() - target_exclusion_y_;
+    const double dz = std::fabs(point.z() - target_exclusion_z_);
+    const double radius_sq = target_exclusion_radius_xy_ * target_exclusion_radius_xy_;
+    return (dx * dx + dy * dy) <= radius_sq &&
+           dz <= target_exclusion_height_z_ * 0.5;
+  }
+
   int count_neighbors(
     const std::unordered_map<VoxelKey, VoxelAccumulator, VoxelKeyHash> & voxels,
     const VoxelKey & key) const
@@ -534,6 +585,9 @@ private:
       const Eigen::Vector3d point_base =
         cloud_to_base * Eigen::Vector3d(static_cast<double>(x), static_cast<double>(y), static_cast<double>(z));
       if (!point_in_roi(point_base)) {
+        continue;
+      }
+      if (point_in_target_exclusion(point_base)) {
         continue;
       }
       ++in_roi_points;
