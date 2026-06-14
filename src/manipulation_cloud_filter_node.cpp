@@ -568,6 +568,7 @@ private:
     const auto * data = cloud.data.data();
     std::size_t finite_points = 0;
     std::size_t in_roi_points = 0;
+    std::size_t target_excluded_points = 0;
 
     for (std::size_t i = 0; i < total_points; i += static_cast<std::size_t>(input_downsampling_)) {
       const auto * point_ptr = data + i * cloud.point_step;
@@ -588,6 +589,7 @@ private:
         continue;
       }
       if (point_in_target_exclusion(point_base)) {
+        ++target_excluded_points;
         continue;
       }
       ++in_roi_points;
@@ -638,6 +640,21 @@ private:
         finite_points,
         in_roi_points,
         voxels.size(),
+        accepted_voxels.size());
+    }
+
+    if (target_exclusion_enabled_) {
+      RCLCPP_INFO_THROTTLE(
+        get_logger(),
+        *get_clock(),
+        1000,
+        "[manipulation_cloud_filter] target_exclusion center=[%.3f %.3f %.3f] radius_xy=%.3f height_z=%.3f excluded=%zu accepted=%zu",
+        target_exclusion_x_,
+        target_exclusion_y_,
+        target_exclusion_z_,
+        target_exclusion_radius_xy_,
+        target_exclusion_height_z_,
+        target_excluded_points,
         accepted_voxels.size());
     }
 
