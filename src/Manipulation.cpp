@@ -43,7 +43,7 @@ bool Manipulation::PlanTrajectory(
   request->target_pose = target_pose;
   request->planning_group = planning_group;
   request->tip_link = tip_link; 
-  request->planning_time = 15.0;
+  request->planning_time = 7.0;
   request->enable_target_exclusion = enable_target_exclusion;
   request->target_exclusion_center = target_exclusion_center;
   request->target_exclusion_radius_xy = target_exclusion_radius_xy;
