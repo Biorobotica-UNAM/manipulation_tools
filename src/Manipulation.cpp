@@ -7,7 +7,12 @@ Manipulation::Manipulation(const rclcpp::Node::SharedPtr &node)
       node_->create_callback_group(
           rclcpp::CallbackGroupType::Reentrant);
 
-  const rclcpp::QoS qos = rclcpp::ServicesQoS();
+  //const rclcpp::QoS qos = rclcpp::ServicesQoS();
+
+
+  //CAMARAAAA!!!!!! 
+  const rmw_qos_profile_t qos = rmw_qos_profile_services_default;
+
 
   plan_trajectory_client_ =
       node_->create_client<
