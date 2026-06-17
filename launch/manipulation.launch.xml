@@ -7,6 +7,11 @@
 
   <group>
     <push-ros-namespace namespace="$(var namespace)"/>
+    <!-- /hardware/joint_states es la fuente canonica del robot. MoveIt corre
+         bajo /manipulation, asi que remapeamos sus consumidores relativos y los
+         clientes antiguos que aun pidan /manipulation/joint_states. -->
+    <set_remap from="joint_states" to="/hardware/joint_states"/>
+    <set_remap from="/manipulation/joint_states" to="/hardware/joint_states"/>
 
     <!-- Filtro dedicado a MoveIt/manipulacion. Se lanza apagado y el
          manipulation_planner lo activa via /manipulation/cloud_filter/enable
@@ -39,7 +44,9 @@
 
 		<include file="$(find-pkg-share move_it)/launch/move_group.launch.py"/>
 
-    <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml"/>
+    <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml">
+      <arg name="use_cloud_filter" value="$(var use_cloud_filter)"/>
+    </include>
 
     <include file="$(find-pkg-share manipulation_controller)/launch/manipulation_controller.launch.xml"/>
 
