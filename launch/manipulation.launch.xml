@@ -1,12 +1,52 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="namespace" default="manipulation"/>
+  <arg name="pointcloud_topic" default="/hardware/camera/points"/>
+  <arg name="manipulation_filtered_cloud_topic" default="/$(var namespace)/camera/points_filtered"/>
+  <arg name="use_cloud_filter" default="true"/>
 
   <group>
-    <push-ros-namespace namespace="manipulation"/>
+    <push-ros-namespace namespace="$(var namespace)"/>
+    <!-- /hardware/joint_states es la fuente canonica del robot. MoveIt corre
+         bajo /manipulation, asi que remapeamos sus consumidores relativos y los
+         clientes antiguos que aun pidan /manipulation/joint_states. -->
+    <set_remap from="joint_states" to="/hardware/joint_states"/>
+    <set_remap from="/manipulation/joint_states" to="/hardware/joint_states"/>
 
-	<include file="$(find-pkg-share move_it)/launch/move_group.launch.py"/>
+    <!-- Filtro dedicado a MoveIt/manipulacion. Se lanza apagado y el
+         manipulation_planner lo activa via /manipulation/cloud_filter/enable
+         justo antes de pedir una trayectoria. -->
+    <node
+      pkg="manipulation_tools"
+      exec="manipulation_cloud_filter_node"
+      name="cloud_filter"
+      output="screen"
+      if="$(var use_cloud_filter)">
+      <param name="input_topic" value="$(var pointcloud_topic)"/>
+      <param name="output_topic" value="$(var manipulation_filtered_cloud_topic)"/>
+      <param name="base_link_name" value="base_link"/>
+      <param name="active_on_start" value="false"/>
+      <!-- Prisma en base_link: evita piso y puntos altos fuera del volumen util
+           de los brazos para mantener limpio el octomap de MoveIt. -->
+      <param name="roi_x_min_m" value="0.15"/>
+      <param name="roi_x_max_m" value="1.25"/>
+      <param name="roi_y_min_m" value="-0.75"/>
+      <param name="roi_y_max_m" value="0.75"/>
+      <param name="roi_z_min_m" value="0.45"/>
+      <param name="roi_z_max_m" value="1.30"/>
+      <param name="voxel_leaf_size" value="0.025"/>
+      <param name="input_downsampling" value="2"/>
+      <param name="processing_rate_hz" value="15.0"/>
+      <param name="min_points_per_voxel" value="2"/>
+      <param name="min_neighbor_voxels" value="1"/>
+      <param name="publish_debug_markers" value="true"/>
+    </node>
 
-    <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml"/>
+		<include file="$(find-pkg-share move_it)/launch/move_group.launch.py"/>
+
+    <include file="$(find-pkg-share manipulation_planner)/launch/manipulation_planner.launch.xml">
+      <arg name="use_cloud_filter" value="$(var use_cloud_filter)"/>
+    </include>
 
     <include file="$(find-pkg-share manipulation_controller)/launch/manipulation_controller.launch.xml"/>
 

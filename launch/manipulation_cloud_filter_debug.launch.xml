@@ -1,0 +1,159 @@
+<launch>
+
+  <arg name="use_sim_time" default="false"/>
+  <arg name="namespace_hardware" default="hardware"/>
+  <arg name="namespace_manipulation" default="manipulation"/>
+  <arg name="namespace_nav" default="navigation"/>
+  <arg name="use_rviz" default="true"/>
+  <arg name="use_simple_sim" default="true"/>
+  <arg name="use_robot_state_publisher" default="true"/>
+  <arg name="use_kinect" default="true"/>
+  <arg name="use_kinect_motor" default="true"/>
+  <arg name="publish_static_map_to_odom" default="true"/>
+  <arg name="rviz_config" default="$(find-pkg-share manipulation_tools)/rviz/manipulation_cloud_filter_debug.rviz"/>
+  <arg name="static_map_file" default="$(find-pkg-share navigation_start)/maps/maps/lab2025/map.yaml"/>
+  <arg name="prohibition_map_file" default="$(find-pkg-share navigation_start)/maps/maps/lab2025/map.yaml"/>
+
+  <arg name="raw_point_cloud_topic" default="/$(var namespace_hardware)/camera/points"/>
+  <arg name="filtered_point_cloud_topic" default="/$(var namespace_manipulation)/camera/points_filtered"/>
+
+  <arg name="initial_x" default="0.0"/>
+  <arg name="initial_y" default="0.0"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="laser_beams" default="361"/>
+  <arg name="laser_range_max" default="6.0"/>
+  <arg name="laser_unknown_is_obstacle" default="false"/>
+  <arg name="laser_publish_max_range" default="false"/>
+
+  <arg name="roi_x_min_m" default="0.15"/>
+  <arg name="roi_x_max_m" default="1.25"/>
+  <arg name="roi_y_min_m" default="-0.75"/>
+  <arg name="roi_y_max_m" default="0.75"/>
+  <arg name="roi_z_min_m" default="0.45"/>
+  <arg name="roi_z_max_m" default="1.30"/>
+
+  <let name="justina_share" value="$(find-pkg-share justina_description)"/>
+
+  <!-- Entorno minimo tipo kinect_obstacle_debug: mapa, TF, modelo y Kinect para
+       revisar visualmente el prisma de manipulacion sin levantar todo el robot. -->
+  <node pkg="justina_description"
+        exec="simple_justina_sim.py"
+        name="simple_justina_sim"
+        output="screen"
+        if="$(var use_simple_sim)">
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+    <param name="initial_x" value="$(var initial_x)"/>
+    <param name="initial_y" value="$(var initial_y)"/>
+    <param name="initial_yaw" value="$(var initial_yaw)"/>
+    <param name="laser_beams" value="$(var laser_beams)"/>
+    <param name="laser_range_max" value="$(var laser_range_max)"/>
+    <param name="laser_unknown_is_obstacle" value="$(var laser_unknown_is_obstacle)"/>
+    <param name="laser_publish_max_range" value="$(var laser_publish_max_range)"/>
+  </node>
+
+  <node pkg="robot_state_publisher"
+        exec="robot_state_publisher"
+        name="robot_state_publisher"
+        output="screen"
+        if="$(var use_robot_state_publisher)">
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+    <param name="robot_description" value="$(command 'cat $(var justina_share)/urdf/justina.urdf')"/>
+    <remap from="joint_states" to="/hardware/joint_states"/>
+    <remap from="robot_description" to="/hardware/robot_description"/>
+  </node>
+
+  <group if="$(var use_kinect)">
+    <push_ros_namespace namespace="$(var namespace_hardware)"/>
+    <include file="$(find-pkg-share kinect_ros2)/launch/kinect.launch.xml"/>
+  </group>
+
+  <node pkg="justina_description"
+        exec="kinect_tilt_motor_node.py"
+        name="kinect_tilt_motor_node"
+        output="screen"
+        if="$(var use_kinect_motor)">
+    <param name="head_pose_topic" value="/hardware/head/current_pose"/>
+    <param name="invert_tilt" value="false"/>
+    <param name="angle_offset_deg" value="0.0"/>
+  </node>
+
+  <node pkg="tf2_ros"
+        exec="static_transform_publisher"
+        name="debug_map_to_odom"
+        args="--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id map --child-frame-id odom"
+        if="$(var publish_static_map_to_odom)">
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+  </node>
+
+  <node name="static_map_server"
+        pkg="nav2_map_server"
+        exec="map_server"
+        output="screen"
+        respawn="true"
+        namespace="$(var namespace_nav)">
+    <param name="yaml_filename" value="$(var static_map_file)"/>
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+  </node>
+
+  <node name="prohibition_map_server"
+        pkg="nav2_map_server"
+        exec="map_server"
+        output="screen"
+        respawn="true"
+        namespace="$(var namespace_nav)">
+    <param name="yaml_filename" value="$(var prohibition_map_file)"/>
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+    <remap from="map" to="fixed_prohibition_layer_map"/>
+  </node>
+
+  <node name="lifecycle_manager_map"
+        pkg="nav2_lifecycle_manager"
+        exec="lifecycle_manager"
+        output="screen"
+        respawn="true"
+        namespace="$(var namespace_nav)">
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+    <param name="autostart" value="true"/>
+    <param name="node_names" value="['static_map_server', 'prohibition_map_server']"/>
+  </node>
+
+  <node name="cloud_filter"
+        pkg="manipulation_tools"
+        exec="manipulation_cloud_filter_node"
+        output="screen"
+        respawn="true"
+        namespace="$(var namespace_manipulation)">
+    <param name="use_sim_time" value="$(var use_sim_time)"/>
+    <param name="input_topic" value="$(var raw_point_cloud_topic)"/>
+    <param name="output_topic" value="$(var filtered_point_cloud_topic)"/>
+    <param name="base_link_name" value="base_link"/>
+    <!-- En debug arranca activo para ver inmediatamente nube filtrada y prisma. -->
+    <param name="active_on_start" value="true"/>
+
+    <!-- Mismo ROI que el launch final, pero expuesto como argumentos para
+         ajustar el prisma desde la terminal sin editar archivos. -->
+    <param name="roi_x_min_m" value="$(var roi_x_min_m)"/>
+    <param name="roi_x_max_m" value="$(var roi_x_max_m)"/>
+    <param name="roi_y_min_m" value="$(var roi_y_min_m)"/>
+    <param name="roi_y_max_m" value="$(var roi_y_max_m)"/>
+    <param name="roi_z_min_m" value="$(var roi_z_min_m)"/>
+    <param name="roi_z_max_m" value="$(var roi_z_max_m)"/>
+
+    <param name="voxel_leaf_size" value="0.025"/>
+    <param name="input_downsampling" value="2"/>
+    <param name="processing_rate_hz" value="15.0"/>
+    <param name="tf_fallback_warn_threshold_sec" value="0.20"/>
+    <param name="min_points_per_voxel" value="2"/>
+    <param name="min_neighbor_voxels" value="1"/>
+    <param name="publish_debug_markers" value="true"/>
+    <param name="debug" value="false"/>
+  </node>
+
+  <node pkg="rviz2"
+        exec="rviz2"
+        name="rviz2_manipulation_cloud_filter_debug"
+        output="screen"
+        if="$(var use_rviz)"
+        args="-d $(var rviz_config)"/>
+
+</launch>

@@ -44,9 +44,14 @@ public:
    *
    * @param target_pose     Desired end-effector pose.
    * @param planning_group  MoveIt planning group.
+   * @param tip_link        MoveIt kinematic chain tip.
    * @param joint_names     Output joint names.
    * @param waypoints       Output waypoint vector.
    * @param message         Planner status message.
+   * @param enable_target_exclusion  Ignore the target object in MoveIt's cloud.
+   * @param target_exclusion_center  Object center to exclude from the cloud.
+   * @param target_exclusion_radius_xy  Horizontal exclusion radius in meters.
+   * @param target_exclusion_height_z   Vertical exclusion height in meters.
    * @param timeout         Maximum wait time.
    *
    * @return true if planning succeeded.
@@ -54,9 +59,15 @@ public:
   bool PlanTrajectory(
       const geometry_msgs::msg::PoseStamped &target_pose,
       const std::string &planning_group,
+      const std::string &tip_link,
       std::vector<std::string> &joint_names,
       std::vector<double> &waypoints,
       std::string &message,
+      bool enable_target_exclusion = false,
+      const geometry_msgs::msg::PoseStamped &target_exclusion_center =
+          geometry_msgs::msg::PoseStamped(),
+      double target_exclusion_radius_xy = 0.14,
+      double target_exclusion_height_z = 0.24,
       std::chrono::seconds timeout = 30s);
 
   /**

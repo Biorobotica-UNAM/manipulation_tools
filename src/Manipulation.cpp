@@ -1,6 +1,5 @@
 #include "manipulation_tools/Manipulation.hpp"
 
-
 Manipulation::Manipulation(const rclcpp::Node::SharedPtr &node)
     : node_(node)
 {
@@ -27,13 +26,17 @@ Manipulation::Manipulation(const rclcpp::Node::SharedPtr &node)
           cb_group_clients_);
 }
 
-
 bool Manipulation::PlanTrajectory(
     const geometry_msgs::msg::PoseStamped &target_pose,
     const std::string &planning_group,
+	const std::string &tip_link,
     std::vector<std::string> &joint_names,
     std::vector<double> &waypoints,
     std::string &message,
+    bool enable_target_exclusion,
+    const geometry_msgs::msg::PoseStamped &target_exclusion_center,
+    double target_exclusion_radius_xy,
+    double target_exclusion_height_z,
     std::chrono::seconds timeout)
 {
   auto request = std::make_shared<
@@ -41,7 +44,27 @@ bool Manipulation::PlanTrajectory(
 
   request->target_pose = target_pose;
   request->planning_group = planning_group;
-  request->planning_time = 10.0;
+  request->tip_link = tip_link; 
+  request->planning_time = 7.0;
+  request->enable_target_exclusion = enable_target_exclusion;
+  request->target_exclusion_center = target_exclusion_center;
+  request->target_exclusion_radius_xy = target_exclusion_radius_xy;
+  request->target_exclusion_height_z = target_exclusion_height_z;
+
+  RCLCPP_INFO(
+      node_->get_logger(),
+      "PlanTrajectory request group=%s tip=%s target=[%.3f %.3f %.3f] exclusion=%s center=[%.3f %.3f %.3f] radius_xy=%.3f height_z=%.3f",
+      planning_group.c_str(),
+      tip_link.c_str(),
+      target_pose.pose.position.x,
+      target_pose.pose.position.y,
+      target_pose.pose.position.z,
+      enable_target_exclusion ? "enabled" : "disabled",
+      target_exclusion_center.pose.position.x,
+      target_exclusion_center.pose.position.y,
+      target_exclusion_center.pose.position.z,
+      target_exclusion_radius_xy,
+      target_exclusion_height_z);
 
   bool success = false;
 
@@ -68,7 +91,6 @@ bool Manipulation::PlanTrajectory(
 
   return completed && success;
 }
-
 
 bool Manipulation::FollowTrajectory(
     const std::string &planning_group,
